@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/yusufaw/azan_id_bot/issues"
   },
-  "homepage": "https://github.com/yusufaw/azan_id_bot#readme"
+  "homepage": "https://github.com/yusufaw/azan_id_bot#readme",
+  "dependencies": {
+    "telegraf": "^4.11.2"
+  }
 }
