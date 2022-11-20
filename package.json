@@ -1,0 +1,19 @@
+{
+  "name": "azan_id_bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufaw/azan_id_bot.git"
+  },
+  "author": "Yusuf Aji Wibowo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yusufaw/azan_id_bot/issues"
+  },
+  "homepage": "https://github.com/yusufaw/azan_id_bot#readme"
+}
