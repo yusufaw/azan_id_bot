@@ -1,34 +1,39 @@
 const { Telegraf } = require('telegraf');
 const axios = require('axios');
+const moment = require('moment-timezone');
+const { find } = require('geo-tz')
 require('dotenv').config();
 
-var moment = require('moment-timezone');
-const xxx= moment().tz("Asia/Jakarta").format("yyyy-MM-DD");
-console.log(xxx)
-
 const bot = new Telegraf(process.env.MBOT_TOKEN)
-// Make a request for a user with a given ID
-axios.get("https://waktu-sholat.vercel.app/prayer?latitude=-6.310433333333333&longitude=107.2922944444444")
-    .then(function (response) {
-        // handle success
-        console.log(response.data);
-    })
-    .catch(function (error) {
-        // handle error
-        console.log(error);
-    })
-    .finally(function () {
-        // always executed
-        var date_time = new Date();
-        console.log(date_time)
-    });
+
+const currentLocation = {
+    latitude: -8.7825214,
+    longitude: 115.1838128
+}
+
+const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
+const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-MM-DD");
 
 bot.command('jadwal', ctx => {
     console.log(ctx.message.text);
-    ctx.reply("helo", {
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-    })
+
+    axios.get(`https://waktu-sholat.vercel.app/prayer?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}`)
+        .then(function (response) {
+            const currentDay = response.data.prayers.filter(age => {
+                return age.date === currentFormattedDate
+            });
+            console.log(currentDay);
+            ctx.reply(JSON.stringify(currentDay[0].time), {
+                parse_mode: "HTML",
+                disable_web_page_preview: true,
+            })
+        })
+        .catch(function (error) {
+            console.log(error);
+        })
+        .finally(function () {
+            // always executed
+        });
 })
 
 bot.launch()
