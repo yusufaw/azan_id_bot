@@ -13,6 +13,8 @@ const currentLocation = {
 
 const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
 const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-MM-DD");
+const currentFormattedDateX = moment().locale("id").tz(currentTimezone[0]).format("dddd, DD MMMM yyyy");
+console.log(currentFormattedDateX)
 
 bot.command('jadwal', ctx => {
     console.log(ctx.message.text);
@@ -23,7 +25,18 @@ bot.command('jadwal', ctx => {
                 return age.date === currentFormattedDate
             });
             console.log(currentDay);
-            ctx.reply(JSON.stringify(currentDay[0].time), {
+            var message = `<b>[Waktu Salat Hari Ini]</b>
+${currentFormattedDateX}
+<code>`
+
+            for (var key in currentDay[0].time) {
+                if (currentDay[0].time.hasOwnProperty(key)) {
+                    message = message + `
+${toSalahSchedule(key, currentDay[0].time[key])}`;
+                }
+            }
+            message = message + "</code>"
+            ctx.reply(message, {
                 parse_mode: "HTML",
                 disable_web_page_preview: true,
             })
@@ -37,3 +50,12 @@ bot.command('jadwal', ctx => {
 })
 
 bot.launch()
+
+String.prototype.toProperCase = function () {
+    return this.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+};
+
+function toSalahSchedule(key, value) {
+    const spaceCount = 8 - key.length
+    return key.toProperCase() + new Array(spaceCount + 1).join(' ') + "- " + value
+}
