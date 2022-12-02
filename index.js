@@ -12,11 +12,12 @@ const currentLocation = {
 }
 
 const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
-const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-MM-DD");
-const currentFormattedDateWithDay = moment().locale("id").tz(currentTimezone[0]).format("dddd, DD MMMM yyyy");
 
 bot.command('jadwal', ctx => {
     console.log(ctx.message.text);
+
+    const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-MM-D");
+    const currentFormattedDateWithDay = moment().locale("id").tz(currentTimezone[0]).format("dddd, DD MMMM yyyy");
 
     axios.get(`https://waktu-sholat.vercel.app/prayer?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}`)
         .then(function (response) {
