@@ -40,6 +40,44 @@ bot.command('jadwal', ctx => {
         });
 })
 
+bot.command('pengaturan', ctx => {
+    axios.get(`https://waktu-sholat.vercel.app/province`)
+        .then(function (response) {
+            console.log(response);
+            const inKey = response.data.map(province => {
+                return [{
+                    text: province.name,
+                    callback_data: province.id
+                }]
+            })
+            const opts = {
+                reply_markup: JSON.stringify({
+                    inline_keyboard:inKey
+                })
+            };
+            ctx.reply("Silakan pilih provinsi", opts);
+        })
+        .catch(function (error) {
+            console.log(error);
+        })
+        .finally(function () {
+            // always executed
+        });
+
+
+    
+});
+
+bot.on('callback_query', async (ctx) => {
+    console.log(ctx.callbackQuery);
+    // Explicit usage
+    // await ctx.telegram.answerCbQuery(ctx.callbackQuery.id);
+
+    // // Using context shortcut
+    // await ctx.answerCbQuery();
+    await ctx.editMessageReplyMarkup(ctx)
+});
+
 bot.launch()
 
 String.prototype.toProperCase = function () {
