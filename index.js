@@ -52,7 +52,7 @@ bot.command('pengaturan', ctx => {
             })
             const opts = {
                 reply_markup: JSON.stringify({
-                    inline_keyboard:inKey
+                    inline_keyboard: inKey
                 })
             };
             ctx.reply("Silakan pilih provinsi", opts);
@@ -63,19 +63,38 @@ bot.command('pengaturan', ctx => {
         .finally(function () {
             // always executed
         });
-
-
-    
 });
 
 bot.on('callback_query', async (ctx) => {
     console.log(ctx.callbackQuery);
-    // Explicit usage
-    // await ctx.telegram.answerCbQuery(ctx.callbackQuery.id);
+    if (ctx.callbackQuery.message.text.includes("kabupaten")) {
+        ctx.editMessageText("OK")
+    } else {
+        axios.get(`https://waktu-sholat.vercel.app/province/${ctx.callbackQuery.data}`)
+            .then(function (response) {
+                console.log(response);
+                const inKey = response.data.cities.map(city => {
+                    return [{
+                        text: city.name,
+                        callback_data: city.id
+                    }]
+                })
+                const opts = {
+                    reply_markup: JSON.stringify({
+                        inline_keyboard: inKey
+                    })
+                };
+                ctx.editMessageText("Silakan pilih kota atau kabupaten", opts)
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+            .finally(function () {
+                // always executed
+            });
 
-    // // Using context shortcut
-    // await ctx.answerCbQuery();
-    await ctx.editMessageReplyMarkup(ctx)
+    }
+
 });
 
 bot.launch()
