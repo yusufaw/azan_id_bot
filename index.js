@@ -6,14 +6,15 @@ require('dotenv').config();
 
 const bot = new Telegraf(process.env.MBOT_TOKEN)
 
-const currentLocation = {
+var currentLocation = {
     latitude: -8.7825214,
     longitude: 115.1838128
 }
+var city = {}
 
-const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
 
 bot.command('jadwal', ctx => {
+    const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
     console.log(ctx.message.text);
 
     const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-MM-D");
@@ -25,7 +26,7 @@ bot.command('jadwal', ctx => {
                 return age.date === currentFormattedDate
             })[0].time;
 
-            const formattedMessage = generateFormattedMessage(currentFormattedDateWithDay, currentListTime)
+            const formattedMessage = generateFormattedMessage(currentFormattedDateWithDay, currentListTime, city)
 
             ctx.reply(formattedMessage, {
                 parse_mode: "HTML",
@@ -68,7 +69,19 @@ bot.command('pengaturan', ctx => {
 bot.on('callback_query', async (ctx) => {
     console.log(ctx.callbackQuery);
     if (ctx.callbackQuery.message.text.includes("kabupaten")) {
-        ctx.editMessageText("OK")
+        axios.get(`https://waktu-sholat.vercel.app/province/${ctx.callbackQuery.data}`)
+            .then(function (response) {
+                console.log(response.data);
+                currentLocation = response.data.coordinate
+                city = response.data
+                ctx.editMessageText(response.data.name)
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+            .finally(function () {
+                // always executed
+            });
     } else {
         axios.get(`https://waktu-sholat.vercel.app/province/${ctx.callbackQuery.data}`)
             .then(function (response) {
@@ -76,7 +89,7 @@ bot.on('callback_query', async (ctx) => {
                 const inKey = response.data.cities.map(city => {
                     return [{
                         text: city.name,
-                        callback_data: city.id
+                        callback_data: `${ctx.callbackQuery.data}/city/${city.id}`
                     }]
                 })
                 const opts = {
@@ -108,9 +121,10 @@ function generateSalahSchedule(key, value) {
     return key.toProperCase() + new Array(spaceCount + 1).join(' ') + "- " + value
 }
 
-function generateFormattedMessage(day, time) {
+function generateFormattedMessage(day, time, city) {
     var message = "<b>[Waktu Salat Hari Ini]</b>"
-    message += `\n<i>${day}</i>\n`
+    message += `\n<i>${day}</i>`
+    message += `\n<i>${city.name}</i>\n`
     message += "<code>"
 
     for (var key in time) {
