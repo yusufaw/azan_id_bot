@@ -4,4 +4,5 @@ ssh -tt fi0smith@$DIGI_IP << ENDSSH
    git pull origin main
    npm install
    pm2 restart all
+   exit
 ENDSSH
