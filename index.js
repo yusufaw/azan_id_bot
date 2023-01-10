@@ -17,7 +17,7 @@ bot.command('jadwal', ctx => {
     const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
     console.log(ctx.message.text);
 
-    const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-MM-D");
+    const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-M-D");
     const currentFormattedDateWithDay = moment().locale("id").tz(currentTimezone[0]).format("dddd, DD MMMM yyyy");
 
     axios.get(`https://waktu-sholat.vercel.app/prayer?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}`)
