@@ -12,6 +12,11 @@ var currentLocation = {
 }
 var city = {}
 
+bot.command('tentang', ctx => {
+    ctx.reply("Bot ini masih dalam pengembangan, dukung kami untuk terus mengembangkan bot ini.\nhttps://saweria.co/shellstrop\n\nJika ada saran atau kesulitan silakan hubungi @ucup_aw", {
+        parse_mode: "HTML"
+    })
+})
 
 bot.command('jadwal', ctx => {
     const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
