@@ -1,16 +1,11 @@
 const { Telegraf } = require('telegraf');
 const axios = require('axios');
 const moment = require('moment-timezone');
-const { find } = require('geo-tz')
+const { find } = require('geo-tz');
+const LocationsService = require('./service/LocationsService.js')
 require('dotenv').config();
 
 const bot = new Telegraf(process.env.MBOT_TOKEN)
-
-var currentLocation = {
-    latitude: -8.7825214,
-    longitude: 115.1838128
-}
-var city = {}
 
 bot.command('tentang', ctx => {
     ctx.reply("Bot ini masih dalam pengembangan, dukung kami untuk terus mengembangkan bot ini.\nhttps://saweria.co/shellstrop\n\nJika ada saran atau kesulitan silakan hubungi @ucup_aw.\nTerima kasih.", {
@@ -19,37 +14,42 @@ bot.command('tentang', ctx => {
 })
 
 bot.command('jadwal', ctx => {
-    const currentTimezone = find(currentLocation.latitude, currentLocation.longitude)
-    console.log(ctx.message.text);
+    LocationsService.getOneLocationByChatId(ctx.update.message.chat.id).then(currentLocation => {
+        if (!currentLocation) {
+            ctx.reply("Anda belum mengatur lokasi. Silakan masukkan perintah /pengaturan.");
+            return;
+        }
+        const currentTimezone = find(currentLocation.latitude, currentLocation.longitude);
 
-    const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-M-D");
-    const currentFormattedDateWithDay = moment().locale("id").tz(currentTimezone[0]).format("dddd, DD MMMM yyyy");
+        const currentFormattedDate = moment().tz(currentTimezone[0]).format("yyyy-M-D");
+        const currentFormattedDateWithDay = moment().locale("id").tz(currentTimezone[0]).format("dddd, DD MMMM yyyy");
 
-    axios.get(`https://waktu-sholat.vercel.app/prayer?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}`)
-        .then(function (response) {
-            const currentListTime = response.data.prayers.filter(age => {
-                return age.date === currentFormattedDate
-            })[0].time;
+        axios.get(`https://waktu-sholat.vercel.app/prayer?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}`)
+            .then(function (response) {
+                const currentListTime = response.data.prayers.filter(age => {
+                    return age.date === currentFormattedDate
+                })[0].time;
 
-            const formattedMessage = generateFormattedMessage(currentFormattedDateWithDay, currentListTime, city)
+                const formattedMessage = generateFormattedMessage(currentFormattedDateWithDay, currentListTime, currentLocation.city)
 
-            ctx.reply(formattedMessage, {
-                parse_mode: "HTML",
-                disable_web_page_preview: true,
+                ctx.reply(formattedMessage, {
+                    parse_mode: "HTML",
+                    disable_web_page_preview: true,
+                })
             })
-        })
-        .catch(function (error) {
-            console.log(error);
-        })
-        .finally(function () {
-            // always executed
-        });
+            .catch(function (error) {
+                console.log(error);
+            })
+            .finally(function () {
+                // always executed
+            });
+
+    })
 })
 
 bot.command('pengaturan', ctx => {
     axios.get(`https://waktu-sholat.vercel.app/province`)
         .then(function (response) {
-            console.log(response);
             const inKey = response.data.map(province => {
                 return [{
                     text: province.name,
@@ -72,14 +72,23 @@ bot.command('pengaturan', ctx => {
 });
 
 bot.on('callback_query', async (ctx) => {
-    console.log(ctx.callbackQuery);
     if (ctx.callbackQuery.message.text.includes("kabupaten")) {
         axios.get(`https://waktu-sholat.vercel.app/province/${ctx.callbackQuery.data}`)
             .then(function (response) {
-                console.log(response.data);
-                currentLocation = response.data.coordinate
-                city = response.data
                 ctx.editMessageText(response.data.name)
+                var chatName = ""
+                if (ctx.callbackQuery.message.chat.type == 'private') {
+                    chatName = ctx.callbackQuery.message.chat.first_name + " " + ctx.callbackQuery.message.chat.last_name
+                } else {
+                    chatName = ctx.callbackQuery.message.chat.title
+                }
+                LocationsService.updateLocation({
+                    chat_id: ctx.callbackQuery.message.chat.id,
+                    chat_name: chatName,
+                    latitude: response.data.coordinate.latitude,
+                    longitude: response.data.coordinate.longitude,
+                    city: response.data.name
+                })
             })
             .catch(function (error) {
                 console.log(error);
@@ -90,7 +99,6 @@ bot.on('callback_query', async (ctx) => {
     } else {
         axios.get(`https://waktu-sholat.vercel.app/province/${ctx.callbackQuery.data}`)
             .then(function (response) {
-                console.log(response);
                 const inKey = response.data.cities.map(city => {
                     return [{
                         text: city.name,
@@ -129,7 +137,7 @@ function generateSalahSchedule(key, value) {
 function generateFormattedMessage(day, time, city) {
     var message = "<b>[Waktu Salat Hari Ini]</b>"
     message += `\n<i>${day}</i>`
-    message += `\n<i>${city.name}</i>\n`
+    message += `\n<i>${city}</i>\n`
     message += "<code>"
 
     for (var key in time) {

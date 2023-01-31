@@ -30,10 +30,10 @@ const LocationsService = () => {
     });
   };
 
-  const getOneSentence = () => {
+  const getOneLocationByChatId = data => {
     return new Promise((resolve, reject) => {
-      LocationsModel.aggregate(
-        [{ $sample: { size: 1 } }]
+      LocationsModel.findOne(
+        { chat_id: data }
       )
         .then(result => {
           resolve(result);
@@ -44,9 +44,16 @@ const LocationsService = () => {
     });
   }
 
-  const addBulkSentences = data => {
+  const updateLocation = data => {
     return new Promise((resolve, reject) => {
-      LocationsModel.insertMany(data)
+      LocationsModel.findOneAndUpdate({
+        chat_id: data.chat_id
+      }, {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        city: data.city,
+        chat_name: data.chat_name
+      }, { upsert: true })
         .then(result => {
           resolve(result);
         })
@@ -54,7 +61,7 @@ const LocationsService = () => {
           reject(err);
         });
     });
-  };
+  }
 
   const getOneSentenceExcept = (data) => {
     return new Promise((resolve, reject) => {
@@ -69,7 +76,7 @@ const LocationsService = () => {
         });
     });
   }
-  
+
   const getSentencesExcept = (data) => {
     return new Promise((resolve, reject) => {
       LocationsModel.aggregate(
@@ -99,14 +106,14 @@ const LocationsService = () => {
   }
 
   return {
-    addNewSentence: addNewSentence,
+    addNewLocation: addNewLocation,
     removeSentence: removeSentence,
-    getOneSentence: getOneSentence,
-    addBulkSentences: addBulkSentences,
+    getOneLocationByChatId: getOneLocationByChatId,
+    updateLocation: updateLocation,
     getOneSentenceExcept: getOneSentenceExcept,
     getOneSentencByPhrase: getOneSentencByPhrase,
     getSentencesExcept: getSentencesExcept
   }
 };
 
-module.exports = SentencesService();
+module.exports = LocationsService();
