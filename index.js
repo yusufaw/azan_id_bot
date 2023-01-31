@@ -13,7 +13,7 @@ var currentLocation = {
 var city = {}
 
 bot.command('tentang', ctx => {
-    ctx.reply("Bot ini masih dalam pengembangan, dukung kami untuk terus mengembangkan bot ini.\nhttps://saweria.co/shellstrop\n\nJika ada saran atau kesulitan silakan hubungi @ucup_aw", {
+    ctx.reply("Bot ini masih dalam pengembangan, dukung kami untuk terus mengembangkan bot ini.\nhttps://saweria.co/shellstrop\n\nJika ada saran atau kesulitan silakan hubungi @ucup_aw.\nTerima kasih.", {
         parse_mode: "HTML"
     })
 })
