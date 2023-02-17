@@ -3,6 +3,7 @@ const axios = require('axios');
 const moment = require('moment-timezone');
 const { find } = require('geo-tz');
 const LocationsService = require('./service/LocationsService.js')
+const { performance } = require("perf_hooks");
 require('dotenv').config();
 
 const bot = new Telegraf(process.env.MBOT_TOKEN)
@@ -14,6 +15,7 @@ bot.command('tentang', ctx => {
 })
 
 bot.command('jadwal', ctx => {
+    const start = performance.now();
     LocationsService.getOneLocationByChatId(ctx.update.message.chat.id).then(currentLocation => {
         if (!currentLocation) {
             ctx.reply("Anda belum mengatur lokasi. Silakan masukkan perintah /pengaturan.");
@@ -45,6 +47,9 @@ bot.command('jadwal', ctx => {
             });
 
     })
+
+    const end = performance.now();
+    console.log(`jadwal time taken: ${end - start}ms`);
 })
 
 bot.command('pengaturan', ctx => {
