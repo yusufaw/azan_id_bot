@@ -49,7 +49,7 @@ bot.command('jadwal', ctx => {
     })
 
     const end = performance.now();
-    console.log(`time taken: ${end - start}ms`);
+    console.log(`jadwal time taken: ${end - start}ms`);
 })
 
 bot.command('pengaturan', ctx => {
