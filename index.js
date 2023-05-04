@@ -77,18 +77,23 @@ bot.command('pengaturan', ctx => {
 });
 
 bot.on('callback_query', async (ctx) => {
+    const chat = ctx.callbackQuery.message.chat;
     if (ctx.callbackQuery.message.text.includes("kabupaten")) {
         axios.get(`https://waktu-sholat.vercel.app/province/${ctx.callbackQuery.data}`)
             .then(function (response) {
                 ctx.editMessageText(response.data.name)
                 var chatName = ""
-                if (ctx.callbackQuery.message.chat.type == 'private') {
-                    chatName = ctx.callbackQuery.message.chat.first_name + " " + ctx.callbackQuery.message.chat.last_name
+                if (chat.type == 'private') {
+                    if (chat.last_name) {
+                        chatName = chat.first_name + " " + chat.last_name
+                    } else {
+                        chatName = chat.first_name
+                    }
                 } else {
-                    chatName = ctx.callbackQuery.message.chat.title
+                    chatName = chat.title
                 }
                 LocationsService.updateLocation({
-                    chat_id: ctx.callbackQuery.message.chat.id,
+                    chat_id: chat.id,
                     chat_name: chatName,
                     latitude: response.data.coordinate.latitude,
                     longitude: response.data.coordinate.longitude,
