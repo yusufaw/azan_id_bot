@@ -84,7 +84,11 @@ bot.on('callback_query', async (ctx) => {
                 ctx.editMessageText(response.data.name)
                 var chatName = ""
                 if (chat.type == 'private') {
-                    chatName = chat.first_name + " " + chat.last_name
+                    if (chat.last_name) {
+                        chatName = chat.first_name + " " + chat.last_name
+                    } else {
+                        chatName = chat.first_name
+                    }
                 } else {
                     chatName = chat.title
                 }
