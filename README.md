@@ -2,7 +2,7 @@
 
 A Telegram bot that delivers daily Islamic prayer (salat) schedules for cities across Indonesia. Users pick their province and city once, and the bot remembers the location per chat (private chats and groups alike) so it can serve the schedule for the right place and timezone.
 
-Prayer time data comes from the [waktu-sholat API](https://waktu-sholat.vercel.app), and saved locations are stored in MongoDB.
+Prayer time data is bundled with the project and served locally — ported from [renomureza/waktu-sholat](https://github.com/renomureza/waktu-sholat) (sourced from Indonesia's Ministry of Religious Affairs / Kemenag) — so there is no dependency on an external API. Saved locations are stored in MongoDB.
 
 ## Bot Commands
 
@@ -14,14 +14,17 @@ Prayer time data comes from the [waktu-sholat API](https://waktu-sholat.vercel.a
 
 ## How It Works
 
-1. `/pengaturan` fetches the province list from the waktu-sholat API and presents it as an inline keyboard; picking a province shows its cities.
+1. `/pengaturan` reads the province list from the bundled dataset and presents it as an inline keyboard; picking a province shows its cities.
 2. When a city is chosen, the bot upserts the chat's location (chat id, chat/group name, coordinates, city name) into MongoDB.
-3. `/jadwal` looks up the chat's saved coordinates, resolves the local timezone with [geo-tz](https://github.com/evansiroky/node-geo-tz), fetches prayer times for those coordinates, and replies with today's schedule.
+3. `/jadwal` looks up the chat's saved coordinates, finds the nearest city in the dataset, resolves the local timezone with [geo-tz](https://github.com/evansiroky/node-geo-tz), reads that city's prayer times from the local data files, and replies with today's schedule.
 
 ## Project Structure
 
 ```
 index.js                    # Bot entry point: command handlers, callback queries, message formatting
+waktu-sholat/index.js       # Local prayer-time lookups (provinces, cities, nearest-city, schedule)
+waktu-sholat/geolocation.js # Great-circle distance helper for nearest-city lookup
+waktu-sholat/data/          # Bundled dataset: list.json + <province>/<city>/<year>.json (2026–2030)
 lib/config.js               # Loads MongoDB settings from environment variables
 lib/db.js                   # Mongoose connection setup
 model/LocationsModel.js     # Mongoose schema for saved chat locations
@@ -33,7 +36,6 @@ deploy.sh                   # Deploy script: SSH to server, pull, install, resta
 
 - [Telegraf](https://telegraf.js.org/) — Telegram bot framework
 - [Mongoose](https://mongoosejs.com/) — MongoDB ODM
-- [axios](https://axios-http.com/) — HTTP client for the prayer-time API
 - [geo-tz](https://github.com/evansiroky/node-geo-tz) + [moment-timezone](https://momentjs.com/timezone/) — timezone resolution and date formatting
 
 ## Getting Started
