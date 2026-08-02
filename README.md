@@ -10,6 +10,7 @@ Prayer time data is bundled with the project and served locally — ported from 
 | --- | --- |
 | `/pengaturan` | Set your location — the bot shows an inline keyboard to pick a province, then a city/regency. The choice is saved for the current chat. |
 | `/jadwal` | Show today's prayer schedule for the saved location, formatted with the local date (Indonesian locale) and timezone. |
+| `/notifikasi` | Choose which prayers to be notified about. Shows an inline keyboard of the five obligatory prayers (Subuh, Dzuhur, Ashar, Maghrib, Isya); tap to toggle each on/off. All off by default. |
 | `/tentang` | About the bot and contact info. |
 
 ## How It Works
@@ -17,6 +18,12 @@ Prayer time data is bundled with the project and served locally — ported from 
 1. `/pengaturan` reads the province list from the bundled dataset and presents it as an inline keyboard; picking a province shows its cities.
 2. When a city is chosen, the bot upserts the chat's location (chat id, chat/group name, coordinates, city name) into MongoDB.
 3. `/jadwal` looks up the chat's saved coordinates, finds the nearest city in the dataset, resolves the local timezone with [geo-tz](https://github.com/evansiroky/node-geo-tz), reads that city's prayer times from the local data files, and replies with today's schedule.
+
+### Prayer notifications
+
+Chats can opt in to per-prayer azan alerts via `/notifikasi` (all off by default). A per-minute scheduler ([node-cron](https://github.com/node-cron/node-cron)) checks every opted-in chat and, when an enabled prayer time arrives (within a few minutes' grace), pushes a short alert in the chat's own timezone. Sends that already went out today are tracked in MongoDB so a restart never resends, and outbound messages are rate-limited to stay under Telegram's limits. See [docs/prayer-notifications.md](docs/prayer-notifications.md) for the full requirements and design.
+
+Set `MONGO_DEBUG=true` to re-enable verbose Mongoose query logging (off by default so the per-minute scan doesn't flood logs).
 
 ## Project Structure
 
@@ -28,8 +35,9 @@ waktu-sholat/data/          # Bundled dataset: list.json + <province>/<city>/<ye
 lib/config.js               # Loads MongoDB settings from environment variables
 lib/db.js                   # Mongoose connection setup
 model/LocationsModel.js     # Mongoose schema for saved chat locations
-service/LocationsService.js # Data-access layer for locations (find, upsert, etc.)
+service/LocationsService.js # Data-access layer for locations (find, upsert, notifications)
 deploy.sh                   # Deploy script: SSH to server, pull, install, restart via pm2
+docs/prayer-notifications.md # Requirements & design for the azan notification feature
 ```
 
 ## Tech Stack
