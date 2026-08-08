@@ -103,6 +103,11 @@ bot.command('notifikasi', ctx => {
 
 bot.on('callback_query', async (ctx) => {
     const chat = ctx.callbackQuery.message.chat;
+    if (ctx.callbackQuery.data === 'notif/save') {
+        await ctx.editMessageText('✅ Pengaturan notifikasi berhasil disimpan.');
+        await ctx.answerCbQuery('Tersimpan!');
+        return;
+    }
     if (ctx.callbackQuery.data.startsWith('notif/')) {
         const prayer = ctx.callbackQuery.data.split('/')[1];
         const updated = await LocationsService.toggleNotification(chat.id, prayer);
@@ -212,13 +217,15 @@ const hhmmToMinutes = (hhmm) => {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function buildNotifKeyboard(location) {
-    return NOTIFY_PRAYERS.map((prayer) => {
+    const rows = NOTIFY_PRAYERS.map((prayer) => {
         const on = location.notifications && location.notifications[prayer];
         return [{
             text: `${on ? '✅' : '⬜'} ${PRAYER_LABELS[prayer]}`,
             callback_data: `notif/${prayer}`
         }];
     });
+    rows.push([{ text: '💾 Simpan', callback_data: 'notif/save' }]);
+    return rows;
 }
 
 function buildAzanMessage(prayer, time, city, dateWithDay) {
