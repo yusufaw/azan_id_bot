@@ -1,0 +1,31 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: SSH and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: DEPLOY_USERNAME
+          script_stop: true
+          script: |
+            cd /home/$DEPLOY_USERNAME/workspace/azan_id_bot
+            git pull origin main
+            npm ci --omit=dev
+            pm2 restart azan_id_bot || pm2 start index.js --name azan_id_bot
